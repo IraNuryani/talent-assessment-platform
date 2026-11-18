@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("CANDIDATE") // "CANDIDATE" or "HR_ADMIN"
+  phone     String?
+  nik       String?
+  createdAt DateTime @default(now())
+
+  applications Application[]
+}
+
+model JobVacancy {
+  id            String   @id @default(uuid())
+  title         String
+  department    String
+  plantLocation String
+  type          String   @default("Full-Time")
+  description   String
+  requirements  String
+  status        String   @default("OPEN")
+  createdAt     DateTime @default(now())
+
+  applications  Application[]
+}
+
+model Application {
+  id            String   @id @default(uuid())
+  userId        String
+  vacancyId     String
+  registrationNo String  @unique
+  // Statuses: 0=SUBMITTED, 1=SCREENED, 2=REJECTED, 3=PSYCHOTEST_PASSED, 4=HIRED
+  status        String   @default("SUBMITTED") 
+  appliedAt     DateTime @default(now())
+  testToken     String?
+
+  user          User     @relation(fields: [userId], references: [id])
+  vacancy       JobVacancy @relation(fields: [vacancyId], references: [id])
+
+  kraepelinResult KraepelinResult?
+  papiResult      PapiResult?
+  onboarding      CandidateOnboarding?
+}
+
+model KraepelinResult {
+  id                String   @id @default(uuid())
+  applicationId     String   @unique
+  totalAnswered     Int
+  totalCorrect      Int
+  totalWrong        Int
+  accuracyRate      Float
+  workCapacity      Int
+  consistencyScore  Float
+  fatigueIndex      Float
+  pattern           String
+  columnStatsJson   String   // JSON string of [{ column, attempted, correct, wrong }]
+  createdAt         DateTime @default(now())
+
+  application       Application @relation(fields: [applicationId], references: [id])
+}
+
+model PapiResult {
+  id                      String   @id @default(uuid())
+  applicationId           String   @unique
+  rawScoresJson           String   // JSON string of 20 dimensions
+  radarDataJson           String   // JSON structure for frontend radar chart
+  diagnosticSummaryJson   String   // Qualitative analysis text
+  createdAt               DateTime @default(now())
+
+  application             Application @relation(fields: [applicationId], references: [id])
+}
+
+model CandidateOnboarding {
+  id                      String   @id @default(uuid())
+  applicationId           String   @unique
+  status                  String   @default("DRAFT") // DRAFT, SUBMITTED, VERIFIED
+  currentStep             Int      @default(1)
+  
+  // Step 1: Identity & Residence
+  nickname                String?
+  birthPlace              String?
+  birthDate               String?
+  gender                  String?
+  maritalStatus           String?
+  religion                String?
+  ktpAddress              String?
+  domicileAddress         String?
+  residenceStatus         String?
+
+  // Step 2: Family composition (JSON string)
+  familyDataJson          String?
+
+  // Step 3: Education & Training (JSON string)
+  educationDataJson       String?
+
+  // Step 4: Work Experience & References (JSON string)
+  workHistoryDataJson     String?
+
+  // Step 5: Health & Mobility
+  heightCm                Int?
+  weightKg                Int?
+  dailyVehicle            String?
+  distanceToOfficeKm      Float?
+  emergencyContactName    String?
+  emergencyContactPhone   String?
+  emergencyContactRelation String?
+
+  // Step 6: Legal Statement & Digital Signature
+  truthDeclared           Boolean  @default(false)
+  signatureBase64         String?
+  signedCity              String?  @default("Jakarta")
+  signedDate              String?
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  application             Application @relation(fields: [applicationId], references: [id])
+}

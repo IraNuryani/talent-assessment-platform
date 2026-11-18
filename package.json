@@ -1,0 +1,27 @@
+{
+  "name": "talentassess-showcase",
+  "version": "1.0.0",
+  "description": "Enterprise-Grade Talent Acquisition, Distributed Psychometrics & Digital Onboarding Platform Showcase",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "setup": "npm run setup:server && npm run setup:client",
+    "setup:server": "cd server && npm install && npx prisma db push && npm run seed",
+    "setup:client": "cd client && npm install",
+    "build": "cd server && npm run build && cd ../client && npm run build"
+  },
+  "keywords": [
+    "talent-acquisition",
+    "ats",
+    "psychometrics",
+    "kraepelin",
+    "papi-kostick",
+    "digital-signature",
+    "fastify",
+    "vue3",
+    "prisma",
+    "typescript"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "MIT"
+}
